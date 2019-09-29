@@ -37,7 +37,6 @@ public class DefaultPrintDispatcher implements PrintDispatcher {
     private void dispatch(Printer printer) {
         var printTask = Executors.newSingleThreadExecutor();
         while (!Thread.interrupted()) {
-            String current = "";
             Document document;
             try {
                 log.info("waiting for new document...");
@@ -47,7 +46,6 @@ public class DefaultPrintDispatcher implements PrintDispatcher {
                 return;
             }
 
-            current = document.toString();
             var future = printTask.submit(() -> {
                 log.info("printing: {}", document);
                 printer.print(document);
@@ -59,13 +57,13 @@ public class DefaultPrintDispatcher implements PrintDispatcher {
 
             try {
                 action.waitForFinish();
-                log.info("finish: {}", current);
+                log.info("finish: {}", action);
             } catch (CancellationException | ExecutionException ignored) {
                 // cancel current document and continue printing
-                log.info("cancel: {}", current);
+                log.info("cancel: {}", action);
                 printer.stop();
             } catch (InterruptedException e) {
-                log.info("interrupt: {}", current);
+                log.info("interrupt: {}", action);
                 Thread.currentThread().interrupt();
             }
         }
